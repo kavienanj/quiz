@@ -1,5 +1,5 @@
 # Description
-# # Quiz app build using [Flutter](https://flutter.dev/)
+## Quiz app build using [Flutter](https://flutter.dev/)
 
 # Screenshots
 ![alt text](https://i.ibb.co/mFD5qZk/screenshot.png)
