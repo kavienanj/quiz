@@ -12,8 +12,8 @@
 
 # Contribution
 
-# # Fix any issue if you found.
+## Fix any issue if you found.
 
-# # Add animations , dark mode.
+## Add animations , dark mode.
 
 
