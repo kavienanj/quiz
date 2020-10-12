@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'animations.dart';
 import 'quiz_complete.dart';
 import 'package:audioplayers/audio_cache.dart';
 import 'home.dart';
@@ -51,7 +52,7 @@ class quizpage extends StatefulWidget {
   _quizpageState createState() => _quizpageState(mydata);
 }
 
-class _quizpageState extends State<quizpage> {
+class _quizpageState extends State<quizpage> with SingleTickerProviderStateMixin {
   final List mydata;
   _quizpageState(this.mydata);
 
@@ -64,6 +65,9 @@ class _quizpageState extends State<quizpage> {
   String showtimer = "15";
   double height = 0.0;
   int q = 0;
+
+  AnimationController _animationController;
+  FadeSlideAnimation slideAcrossAnimator;
 
   final player = AudioCache();
   Map<String, Color> btncolor = {
@@ -78,9 +82,25 @@ class _quizpageState extends State<quizpage> {
 
   @override
   void initState() {
+
+    // Animation Config
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 800), 
+      reverseDuration: Duration(milliseconds: 750)
+    );
+    slideAcrossAnimator = FadeSlideAnimation(animationController: _animationController);
+    _animationController.forward(); 
+
     starttimer();
     timerheight();
     super.initState();
+  }
+
+  @override
+  void dispose() { 
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -121,22 +141,29 @@ class _quizpageState extends State<quizpage> {
     canceltimer = false;
     timer = 15;
     height = 0.00;
-    setState(() {
-      if (mydata[2][j.toString()] != null) {
-        i = j;
-        j++;
-      } else {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (context) => resultpage(marks: marks),
-        ));
-      }
-      btncolor["a"] = Colors.deepPurpleAccent;
-      btncolor["b"] = Colors.deepPurpleAccent;
-      btncolor["c"] = Colors.deepPurpleAccent;
-      btncolor["d"] = Colors.deepPurpleAccent;
-      disableAnswer = false;
+    slideAcrossAnimator.changeDirection();
+    _animationController.reverse().whenComplete(() {
+      // Change to new options after old options slide out
+      setState(() {
+        if (mydata[2][j.toString()] != null) {
+          i = j;
+          j++;
+        } else {
+          Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (context) => resultpage(marks: marks),
+          ));
+        }
+        btncolor["a"] = Colors.deepPurpleAccent;
+        btncolor["b"] = Colors.deepPurpleAccent;
+        btncolor["c"] = Colors.deepPurpleAccent;
+        btncolor["d"] = Colors.deepPurpleAccent;
+        disableAnswer = false;
+      });
+      // Slide in new options
+      slideAcrossAnimator.changeDirection();
+      _animationController.forward();
+      starttimer();
     });
-    starttimer();
   }
 
   void checkanswer(String k) {
@@ -264,12 +291,12 @@ class _quizpageState extends State<quizpage> {
                     ),
                     SizedBox(height: 150.0),
                     Column(
-                      children: <Widget>[
+                      children: slideAcrossAnimator.toStaggerdAnimation([
                         choicebutton('a'),
                         choicebutton('b'),
                         choicebutton('c'),
                         choicebutton('d'),
-                      ],
+                      ]),
                     ),
                     SizedBox(height: 45),
                     Stack(
